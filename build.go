@@ -186,6 +186,20 @@ func (d *Document) drawsTableTitles(pdf *gofpdf.Fpdf) {
 		"",
 	)
 
+	// Discount
+	pdf.SetX(ItemColDiscountOffset)
+	pdf.CellFormat(
+		ItemColTotalTTCOffset-ItemColDiscountOffset,
+		6,
+		encodeString(d.Options.TextItemsDiscountTitle),
+		"0",
+		0,
+		"",
+		false,
+		0,
+		"",
+	)
+
 	// Quantity
 	pdf.SetX(ItemColQuantityOffset)
 	pdf.CellFormat(
@@ -200,40 +214,12 @@ func (d *Document) drawsTableTitles(pdf *gofpdf.Fpdf) {
 		"",
 	)
 
-	// Total HT
-	pdf.SetX(ItemColTotalHTOffset)
-	pdf.CellFormat(
-		ItemColTaxOffset-ItemColTotalHTOffset,
-		6,
-		encodeString(d.Options.TextItemsTotalHTTitle),
-		"0",
-		0,
-		"",
-		false,
-		0,
-		"",
-	)
-
 	// Tax
 	pdf.SetX(ItemColTaxOffset)
 	pdf.CellFormat(
 		ItemColDiscountOffset-ItemColTaxOffset,
 		6,
 		encodeString(d.Options.TextItemsTaxTitle),
-		"0",
-		0,
-		"",
-		false,
-		0,
-		"",
-	)
-
-	// Discount
-	pdf.SetX(ItemColDiscountOffset)
-	pdf.CellFormat(
-		ItemColTotalTTCOffset-ItemColDiscountOffset,
-		6,
-		encodeString(d.Options.TextItemsDiscountTitle),
 		"0",
 		0,
 		"",
@@ -309,7 +295,7 @@ func (d *Document) appendTotal(pdf *gofpdf.Fpdf) {
 	total, _ := decimal.NewFromString("0")
 
 	for _, item := range d.Items {
-		total = total.Add(item.totalWithoutTaxAndWithDiscount())
+		total = total.Add(item.totalWithoutTaxAndWithDiscount().Add(item.shippingCost()))
 	}
 
 	// Apply document discount
@@ -348,7 +334,7 @@ func (d *Document) appendTotal(pdf *gofpdf.Fpdf) {
 					totalTax = totalTax.Add(taxAmount)
 				} else {
 					// Else, remove doc discount % from item total without tax and item discount
-					itemTotal := item.totalWithoutTaxAndWithDiscount()
+					itemTotal := item.totalWithoutTaxAndWithDiscount().Add(item.shippingCost())
 					toSub := discountPercent.Mul(itemTotal).Div(decimal.NewFromFloat(100))
 					itemTotalDiscounted := itemTotal.Sub(toSub)
 

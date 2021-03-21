@@ -7,22 +7,27 @@ import (
 
 func TestNew(t *testing.T) {
 	doc, _ := New(Invoice, &Options{
-		TextTypeInvoice: "FACTURE",
+		TextTypeInvoice: "INVOICE",
 		AutoPrint:       true,
 	})
 
+	doc.Options.CurrencySymbol = "$"
+	doc.Options.TextItemsUnitCostTitle = "Production Fee"
+	doc.Options.TextItemsQuantityTitle = "Shipping"
+	doc.Options.TextItemsNameTitle = "Order Number"
+
 	doc.SetHeader(&HeaderFooter{
-		Text:       "<center>Cupcake ipsum dolor sit amet bonbon. I love croissant cotton candy. Carrot cake sweet I love sweet roll cake powder.</center>",
+		Text:       "<center>Corvallis3D LLC Invoice for Craftcloud by All3DP.</center>",
 		Pagination: true,
 	})
 
 	doc.SetFooter(&HeaderFooter{
-		Text:       "<center>Cupcake ipsum dolor sit amet bonbon. I love croissant cotton candy. Carrot cake sweet I love sweet roll cake powder.</center>",
+		Text:       "<center>Corvallis3D LLC Invoice for Craftcloud by All3DP.</center>",
 		Pagination: true,
 	})
 
-	doc.SetRef("testref")
-	doc.SetVersion("someversion")
+	doc.SetRef("1")
+	doc.SetVersion("1.0")
 
 	doc.SetDescription("A description")
 	doc.SetNotes("I love croissant cotton candy. Carrot cake sweet I love sweet roll cake powder! I love croissant cotton candy. Carrot cake sweet I love sweet roll cake powder! I love croissant cotton candy. Carrot cake sweet I love sweet roll cake powder! I love croissant cotton candy. Carrot cake sweet I love sweet roll cake powder! ")
@@ -30,81 +35,71 @@ func TestNew(t *testing.T) {
 	doc.SetDate("02/03/2021")
 	doc.SetPaymentTerm("02/04/2021")
 
-	logoBytes, _ := ioutil.ReadFile("./example_logo.png")
+	logoBytes, _ := ioutil.ReadFile("invoice_logo.png")
 
 	doc.SetCompany(&Contact{
-		Name: "Test Company",
+		Name: "Corvallis3D LLC",
 		Logo: &logoBytes,
 		Address: &Address{
-			Address:    "89 Rue de Brest",
-			Address2:   "Appartement 2",
-			PostalCode: "75000",
-			City:       "Paris",
-			Country:    "France",
+			Address:    "520 NW Oak Ave.",
+			Address2:   "Ste B",
+			PostalCode: "97330",
+			City:       "Corvallis, OR",
+			Country:    "United States of America",
 		},
 	})
 
 	doc.SetCustomer(&Contact{
-		Name: "Test Customer",
+		Name: "All3DP GmbH",
 		Address: &Address{
-			Address:    "89 Rue de Paris",
-			PostalCode: "29200",
-			City:       "Brest",
-			Country:    "France",
+			Address:    "Ridlerstr. 31A",
+			PostalCode: "80339",
+			City:       "Munich",
+			Country:    "Germany",
 		},
 	})
 
-	for i := 0; i < 3; i++ {
+	for i := 0; i < 2; i++ {
 		doc.AppendItem(&Item{
-			Name:        "Cupcake ipsum dolor sit amet bonbon, coucou bonbon lala jojo, mama titi toto",
-			Description: "Cupcake ipsum dolor sit amet bonbon, Cupcake ipsum dolor sit amet bonbon, Cupcake ipsum dolor sit amet bonbon",
-			UnitCost:    "99876.89",
-			Quantity:    "2",
-			Tax: &Tax{
-				Percent: "20",
+			Name:         "Cupcake ipsum dolor sit amet bonbon, coucou bonbon lala jojo, mama titi toto",
+			Description:  "Cupcake ipsum dolor sit amet bonbon, Cupcake ipsum dolor sit amet bonbon, Cupcake ipsum dolor sit amet bonbon",
+			UnitCost:     "99876.89",
+			ShippingCost: "9.99",
+			Quantity:     "1",
+			Discount: &Discount{
+				Percent: "12.5",
 			},
 		})
 	}
 
 	doc.AppendItem(&Item{
-		Name:     "Test",
-		UnitCost: "99876.89",
-		Quantity: "2",
-		Tax: &Tax{
-			Amount: "89",
-		},
+		Name:         "Test",
+		UnitCost:     "99876.89",
+		ShippingCost: "9.99",
+		Quantity:     "1",
 		Discount: &Discount{
-			Percent: "30",
+			Percent: "12.5",
 		},
 	})
 
 	doc.AppendItem(&Item{
-		Name:     "Test",
-		UnitCost: "3576.89",
-		Quantity: "2",
+		Name:         "Test",
+		UnitCost:     "3576.89",
+		ShippingCost: "9.99",
+		Quantity:     "1",
 		Discount: &Discount{
-			Percent: "50",
+			Percent: "12.5",
 		},
 	})
 
 	doc.AppendItem(&Item{
-		Name:     "Test",
-		UnitCost: "889.89",
-		Quantity: "2",
+		Name:         "Test",
+		UnitCost:     "889.89",
+		ShippingCost: "9.99",
+		Quantity:     "1",
 		Discount: &Discount{
-			Amount: "234.67",
+			Percent: "12.5",
 		},
-	})
-
-	doc.SetDefaultTax(&Tax{
-		Percent: "10",
-	})
-
-	// doc.SetDiscount(&Discount{
-	// Percent: "90",
-	// })
-	doc.SetDiscount(&Discount{
-		Amount: "1340",
 	})
 
 	pdf, err := doc.Build()

@@ -10,17 +10,23 @@ import (
 
 // Item represent a 'product' or a 'service'
 type Item struct {
-	Name        string    `json:"name,omitempty" validate:"required"`
-	Description string    `json:"description,omitempty"`
-	UnitCost    string    `json:"unit_cost,omitempty"`
-	Quantity    string    `json:"quantity,omitempty"`
-	Tax         *Tax      `json:"tax,omitempty"`
-	Discount    *Discount `json:"discount,omitempty"`
+	Name         string    `json:"name,omitempty" validate:"required"`
+	Description  string    `json:"description,omitempty"`
+	UnitCost     string    `json:"unit_cost,omitempty"`
+	ShippingCost string    `json:"shipping,omitempty"`
+	Quantity     string    `json:"quantity,omitempty"`
+	Tax          *Tax      `json:"tax,omitempty"`
+	Discount     *Discount `json:"discount,omitempty"`
 }
 
 func (i *Item) unitCost() decimal.Decimal {
 	unitCost, _ := decimal.NewFromString(i.UnitCost)
 	return unitCost
+}
+
+func (i *Item) shippingCost() decimal.Decimal {
+	shippingCost, _ := decimal.NewFromString(i.ShippingCost)
+	return shippingCost
 }
 
 func (i *Item) quantity() decimal.Decimal {
@@ -56,7 +62,7 @@ func (i *Item) totalWithoutTaxAndWithDiscount() decimal.Decimal {
 }
 
 func (i *Item) totalWithTaxAndDiscount() decimal.Decimal {
-	return i.totalWithoutTaxAndWithDiscount().Add(i.taxWithDiscount())
+	return i.totalWithoutTaxAndWithDiscount().Add(i.taxWithDiscount()).Add(i.shippingCost())
 }
 
 func (i *Item) taxWithDiscount() decimal.Decimal {
@@ -146,21 +152,7 @@ func (i *Item) appendColTo(options *Options, pdf *gofpdf.Fpdf) {
 	pdf.CellFormat(
 		ItemColTaxOffset-ItemColQuantityOffset,
 		colHeight,
-		i.quantity().String(),
-		"0",
-		0,
-		"",
-		false,
-		0,
-		"",
-	)
-
-	// Total HT
-	pdf.SetX(ItemColTotalHTOffset)
-	pdf.CellFormat(
-		ItemColTaxOffset-ItemColTotalHTOffset,
-		colHeight,
-		ac.FormatMoneyDecimal(i.totalWithoutTax()),
+		ac.FormatMoneyDecimal(i.shippingCost()),
 		"0",
 		0,
 		"",
